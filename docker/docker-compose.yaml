@@ -871,8 +871,8 @@ services:
   # The PostgreSQL database.
   db_postgres:
     image: postgres:15-alpine
-    profiles:
-      - postgresql
+    # profiles removed — Coolify does not activate profiles, so this service
+    # must always start unconditionally.
     restart: always
     environment:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
@@ -895,7 +895,7 @@ services:
           "CMD",
           "pg_isready",
           "-h",
-          "db_postgres",
+          "localhost",
           "-U",
           "${DB_USERNAME:-postgres}",
           "-d",
