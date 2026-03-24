@@ -6,11 +6,11 @@
 
 x-shared-env: &shared-api-worker-env
   CONSOLE_API_URL: ${CONSOLE_API_URL:-}
-  CONSOLE_WEB_URL: ${CONSOLE_WEB_URL:-}
+  CONSOLE_WEB_URL: https://care.jyotaish.in
   SERVICE_API_URL: ${SERVICE_API_URL:-}
   TRIGGER_URL: ${TRIGGER_URL:-http://localhost}
   APP_API_URL: ${APP_API_URL:-}
-  APP_WEB_URL: ${APP_WEB_URL:-}
+  APP_WEB_URL: https://care.jyotaish.in
   FILES_URL: ${FILES_URL:-}
   INTERNAL_FILES_URL: ${INTERNAL_FILES_URL:-}
   LANG: ${LANG:-C.UTF-8}
@@ -27,7 +27,7 @@ x-shared-env: &shared-api-worker-env
   DEBUG: ${DEBUG:-false}
   FLASK_DEBUG: ${FLASK_DEBUG:-false}
   ENABLE_REQUEST_LOGGING: ${ENABLE_REQUEST_LOGGING:-False}
-  SECRET_KEY: ${SECRET_KEY:-sk-9f73s3ljTXVcMT3Blb3ljTqtsKiGHXVcMT3BlbkFJLK7U}
+  SECRET_KEY: supersecretkey123
   INIT_PASSWORD: ${INIT_PASSWORD:-}
   DEPLOY_ENV: ${DEPLOY_ENV:-PRODUCTION}
   CHECK_UPDATE_URL: ${CHECK_UPDATE_URL:-https://updates.dify.ai}
