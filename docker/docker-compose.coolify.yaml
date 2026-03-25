@@ -344,7 +344,12 @@ services:
       - web
     expose:
       - "80"
+    networks:
+      - default
+      - coolify
 
 networks:
   ssrf_proxy_network:
     driver: bridge
+  coolify:
+    external: true
