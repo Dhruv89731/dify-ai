@@ -20,10 +20,10 @@
 # ===========================================================================
 
 x-shared-env: &shared-api-worker-env
-  SECRET_KEY: ${SECRET_KEY}
-  CONSOLE_API_URL: ${CONSOLE_API_URL}
+  SECRET_KEY: ${SECRET_KEY:-changeme-use-openssl-rand-hex-32}
+  CONSOLE_API_URL: ${CONSOLE_API_URL:-https://care.jyotaish.in}
   CONSOLE_WEB_URL: ${CONSOLE_WEB_URL:-https://care.jyotaish.in}
-  APP_API_URL: ${APP_API_URL}
+  APP_API_URL: ${APP_API_URL:-https://care.jyotaish.in}
   APP_WEB_URL: ${APP_WEB_URL:-https://care.jyotaish.in}
   SERVICE_API_URL: ${SERVICE_API_URL:-}
   FILES_URL: ${FILES_URL:-}
@@ -35,7 +35,7 @@ x-shared-env: &shared-api-worker-env
   # Database
   DB_TYPE: postgresql
   DB_USERNAME: ${DB_USERNAME:-postgres}
-  DB_PASSWORD: ${DB_PASSWORD}
+  DB_PASSWORD: ${DB_PASSWORD:-difyai123456}
   DB_HOST: db_postgres
   DB_PORT: "5432"
   DB_DATABASE: ${DB_DATABASE:-dify}
@@ -45,9 +45,9 @@ x-shared-env: &shared-api-worker-env
   # Redis
   REDIS_HOST: redis
   REDIS_PORT: "6379"
-  REDIS_PASSWORD: ${REDIS_PASSWORD}
+  REDIS_PASSWORD: ${REDIS_PASSWORD:-difyai123456}
   REDIS_DB: "0"
-  CELERY_BROKER_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+  CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://:difyai123456@redis:6379/1}
   CELERY_BACKEND: redis
   # Vector store (Weaviate — no profile needed here)
   VECTOR_STORE: ${VECTOR_STORE:-weaviate}
@@ -65,12 +65,17 @@ x-shared-env: &shared-api-worker-env
   SSRF_PROXY_HTTPS_URL: http://ssrf_proxy:3128
   # Plugin daemon
   PLUGIN_DAEMON_URL: http://plugin_daemon:5002
-  PLUGIN_DAEMON_KEY: ${PLUGIN_DAEMON_KEY}
+  PLUGIN_DAEMON_KEY: ${PLUGIN_DAEMON_KEY:-lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+Sjc3ZtU+qUEi}
   PLUGIN_DIFY_INNER_API_URL: http://api:5001
-  PLUGIN_DIFY_INNER_API_KEY: ${PLUGIN_DIFY_INNER_API_KEY}
+  PLUGIN_DIFY_INNER_API_KEY: ${PLUGIN_DIFY_INNER_API_KEY:-QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1}
   FORCE_VERIFYING_SIGNATURE: "true"
   MARKETPLACE_ENABLED: "true"
   MARKETPLACE_API_URL: https://marketplace.dify.ai
+  # Coolify/Traefik proxy — tell Dify to trust forwarded headers
+  RESPECT_XFORWARD_HEADERS_ENABLED: "true"
+  # Plugin webhook URL template (replace with your domain)
+  ENDPOINT_URL_TEMPLATE: ${ENDPOINT_URL_TEMPLATE:-https://care.jyotaish.in/e/{hook_id}}
+  LOG_TZ: ${LOG_TZ:-UTC}
   # Access tokens
   INIT_PASSWORD: ${INIT_PASSWORD:-}
   ACCESS_TOKEN_EXPIRE_MINUTES: "60"
@@ -105,7 +110,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-difyai123456}
       POSTGRES_DB: ${DB_DATABASE:-dify}
       PGDATA: /var/lib/postgresql/data/pgdata
     command: >
@@ -129,12 +134,12 @@ services:
     image: redis:6-alpine
     restart: always
     environment:
-      REDISCLI_AUTH: ${REDIS_PASSWORD}
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:-difyai123456}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-difyai123456}
     volumes:
       - ./volumes/redis/data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep -q PONG"]
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-difyai123456} ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 30
@@ -211,9 +216,9 @@ services:
       <<: *shared-api-worker-env
       DB_DATABASE: ${DB_PLUGIN_DATABASE:-dify_plugin}
       SERVER_PORT: "5002"
-      SERVER_KEY: ${PLUGIN_DAEMON_KEY}
+      SERVER_KEY: ${PLUGIN_DAEMON_KEY:-lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+Sjc3ZtU+qUEi}
       DIFY_INNER_API_URL: http://api:5001
-      DIFY_INNER_API_KEY: ${PLUGIN_DIFY_INNER_API_KEY}
+      DIFY_INNER_API_KEY: ${PLUGIN_DIFY_INNER_API_KEY:-QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1}
       PLUGIN_WORKING_PATH: /app/storage/cwd
       PLUGIN_STORAGE_TYPE: local
       PLUGIN_STORAGE_LOCAL_ROOT: /app/storage
@@ -289,8 +294,8 @@ services:
     image: langgenius/dify-web:1.13.2
     restart: always
     environment:
-      CONSOLE_API_URL: ${CONSOLE_API_URL}
-      APP_API_URL: ${APP_API_URL}
+      CONSOLE_API_URL: ${CONSOLE_API_URL:-https://care.jyotaish.in}
+      APP_API_URL: ${APP_API_URL:-https://care.jyotaish.in}
       NEXT_TELEMETRY_DISABLED: "1"
       MARKETPLACE_API_URL: https://marketplace.dify.ai
       MARKETPLACE_URL: https://marketplace.dify.ai
