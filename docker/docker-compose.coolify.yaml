@@ -97,8 +97,8 @@ services:
       - -c
       - |
         FLAG="/app/api/storage/.init_permissions"
-        if [ -f "$FLAG" ]; then echo "Already initialized."; exit 0; fi
-        chown -R 1001:1001 /app/api/storage && touch "$FLAG"
+        if [ -f "$$FLAG" ]; then echo "Already initialized."; exit 0; fi
+        chown -R 1001:1001 /app/api/storage && touch "$$FLAG"
         echo "Permissions initialized."
     volumes:
       - ./volumes/app/storage:/app/api/storage
@@ -337,9 +337,12 @@ services:
     depends_on:
       - api
       - web
-    ports:
-      - "${EXPOSE_NGINX_PORT:-80}:80"
-      - "${EXPOSE_NGINX_SSL_PORT:-443}:443"
+    # No host port bindings — Coolify's Traefik owns ports 80/443 on the host.
+    # Traefik routes to this container's internal port 80 via the domain
+    # configured in the Coolify resource → Domains panel.
+    # ports:
+    #   - "80:80"
+    #   - "443:443"
 
 networks:
   ssrf_proxy_network:
