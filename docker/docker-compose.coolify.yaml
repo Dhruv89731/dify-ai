@@ -96,22 +96,17 @@ services:
       - ssrf_proxy_network
 
   # ── SSRF Proxy ─────────────────────────────────────────────────────────────
+  # Uses printf to write squid.conf inline — no file mounts (Coolify converts
+  # source file paths to empty directories, breaking cp-based entrypoints).
   ssrf_proxy:
     image: ubuntu/squid:latest
     restart: always
-    volumes:
-      - ./ssrf_proxy/squid.conf.template:/etc/squid/squid.conf.template
-      - ./ssrf_proxy/docker-entrypoint.sh:/docker-entrypoint-mount.sh
-    entrypoint:
+    command:
       - sh
       - -c
-      - "cp /docker-entrypoint-mount.sh /docker-entrypoint.sh && sed -i 's/\\r$$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh && /docker-entrypoint.sh"
-    environment:
-      HTTP_PORT: "3128"
-      COREDUMP_DIR: /var/spool/squid
-      REVERSE_PROXY_PORT: "8194"
-      SANDBOX_HOST: sandbox
-      SANDBOX_PORT: "8194"
+      - |
+        printf 'acl sandbox_net src 172.0.0.0/8\nacl sandbox_host dst 172.0.0.0/8\nhttp_access allow localhost\nhttp_access allow sandbox_net\nhttp_access allow sandbox_host\nhttp_access deny all\nhttp_port 3128\ncoredump_dir /var/spool/squid\ndns_v4_first on\n' > /etc/squid/squid.conf
+        squid -f /etc/squid/squid.conf -N
     networks:
       - ssrf_proxy_network
       - default
