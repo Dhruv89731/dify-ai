@@ -78,9 +78,18 @@ services:
       DISABLE_TELEMETRY: "true"
 
   # ── Sandbox ────────────────────────────────────────────────────────────────
+  # Writes config.yaml inline — Coolify resolves ./volumes/sandbox/conf to an
+  # empty data dir, so the file mount approach fails same as nginx/ssrf_proxy.
   sandbox:
     image: langgenius/dify-sandbox:0.2.12
     restart: always
+    entrypoint:
+      - sh
+      - -c
+      - |
+        mkdir -p /conf
+        printf 'app:\n  port: 8194\n  debug: false\n  key: dify-sandbox\nmax_workers: 4\nmax_requests: 50\nworker_timeout: 15\npython_path: /usr/local/bin/python3\nenable_network: true\nallowed_syscalls:\nproxy:\n  socks5: ""\n  http: "http://ssrf_proxy:3128"\n  https: "http://ssrf_proxy:3128"\n' > /conf/config.yaml
+        /main
     environment:
       API_KEY: dify-sandbox
       GIN_MODE: release
@@ -91,7 +100,6 @@ services:
       SANDBOX_PORT: "8194"
     volumes:
       - ./volumes/sandbox/dependencies:/dependencies
-      - ./volumes/sandbox/conf:/conf
     networks:
       - ssrf_proxy_network
 
