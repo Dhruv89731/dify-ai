@@ -213,13 +213,19 @@ services:
     image: langgenius/dify-plugin-daemon:0.5.4-local
     restart: always
     environment:
-      <<: *shared-api-worker-env
-      # Explicitly set here so Coolify's --env-file empty values cannot override
-      # the anchor defaults for plugin_daemon's required fields.
-      DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-difyai123456}
-      DB_DATABASE: ${DB_PLUGIN_DATABASE:-dify_plugin}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-difyai123456}
+      # Critical fields hardcoded as literals — Coolify's --env-file passes these
+      # as empty strings which override :-default substitution in Docker Compose v2.
+      DB_TYPE: postgresql
+      DB_HOST: db_postgres
+      DB_PORT: "5432"
+      DB_USERNAME: postgres
+      DB_PASSWORD: difyai123456
+      DB_DATABASE: dify_plugin
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: difyai123456
+      REDIS_DB: "0"
+      SECRET_KEY: ${SECRET_KEY:-changeme-use-openssl-rand-hex-32}
       SERVER_PORT: "5002"
       SERVER_KEY: ${PLUGIN_DAEMON_KEY:-lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+Sjc3ZtU+qUEi}
       DIFY_INNER_API_URL: http://api:5001
@@ -227,7 +233,13 @@ services:
       PLUGIN_WORKING_PATH: /app/storage/cwd
       PLUGIN_STORAGE_TYPE: local
       PLUGIN_STORAGE_LOCAL_ROOT: /app/storage
+      PLUGIN_INSTALLED_PATH: plugin
+      PLUGIN_PACKAGE_CACHE_PATH: plugin_packages
+      PLUGIN_MEDIA_CACHE_PATH: assets
       PPROF_ENABLED: "false"
+      FORCE_VERIFYING_SIGNATURE: "true"
+      DEPLOY_ENV: PRODUCTION
+      LOG_LEVEL: INFO
     volumes:
       - ./volumes/plugin_daemon:/app/storage
     depends_on:
@@ -243,7 +255,11 @@ services:
     environment:
       <<: *shared-api-worker-env
       MODE: api
-      INNER_API_KEY_FOR_PLUGIN: ${PLUGIN_DIFY_INNER_API_KEY}
+      # Explicit overrides so Coolify's --env-file cannot blank these out
+      DB_PASSWORD: ${DB_PASSWORD:-difyai123456}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-difyai123456}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://:difyai123456@redis:6379/1}
+      INNER_API_KEY_FOR_PLUGIN: ${PLUGIN_DIFY_INNER_API_KEY:-QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1}
     depends_on:
       init_permissions:
         condition: service_completed_successfully
@@ -264,7 +280,11 @@ services:
     environment:
       <<: *shared-api-worker-env
       MODE: worker
-      INNER_API_KEY_FOR_PLUGIN: ${PLUGIN_DIFY_INNER_API_KEY}
+      # Explicit overrides so Coolify's --env-file cannot blank these out
+      DB_PASSWORD: ${DB_PASSWORD:-difyai123456}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-difyai123456}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://:difyai123456@redis:6379/1}
+      INNER_API_KEY_FOR_PLUGIN: ${PLUGIN_DIFY_INNER_API_KEY:-QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1}
     depends_on:
       init_permissions:
         condition: service_completed_successfully
@@ -285,6 +305,10 @@ services:
     environment:
       <<: *shared-api-worker-env
       MODE: beat
+      # Explicit overrides so Coolify's --env-file cannot blank these out
+      DB_PASSWORD: ${DB_PASSWORD:-difyai123456}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-difyai123456}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://:difyai123456@redis:6379/1}
     depends_on:
       db_postgres:
         condition: service_healthy
