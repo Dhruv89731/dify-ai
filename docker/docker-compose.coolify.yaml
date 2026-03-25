@@ -101,7 +101,7 @@ services:
   ssrf_proxy:
     image: ubuntu/squid:latest
     restart: always
-    command:
+    entrypoint:
       - sh
       - -c
       - |
