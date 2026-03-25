@@ -364,8 +364,10 @@ services:
     depends_on:
       - api
       - web
-    # No host ports — Coolify's Traefik owns 80/443.
-    # Set domain on nginx in Coolify Domains panel (port 80).
+    # expose tells Coolify's Traefik which internal port to forward traffic to.
+    # No host port bindings — Traefik handles 80/443 on the host.
+    expose:
+      - "80"
 
 networks:
   ssrf_proxy_network:
