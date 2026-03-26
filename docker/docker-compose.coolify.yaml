@@ -233,8 +233,8 @@ services:
     volumes:
       - ./volumes/app/storage:/app/api/storage
     networks:
-      - ssrf_proxy_network
       - default
+      - ssrf_proxy_network
 
   # ── Worker ─────────────────────────────────────────────────────────────────
   worker:
@@ -285,8 +285,8 @@ services:
     volumes:
       - ./volumes/app/storage:/app/api/storage
     networks:
-      - ssrf_proxy_network
       - default
+      - ssrf_proxy_network
 
   # ── Worker Beat ────────────────────────────────────────────────────────────
   worker_beat:
@@ -315,8 +315,8 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - ssrf_proxy_network
       - default
+      - ssrf_proxy_network
 
   # ── Frontend Web ───────────────────────────────────────────────────────────
   web:
