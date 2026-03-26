@@ -184,13 +184,13 @@ services:
       REDIS_DB: "0"
       CELERY_BROKER_URL: redis://:difyai123456@redis:6379/1
       CELERY_BACKEND: redis
-      CONSOLE_API_URL: https://care.jyotaish.in
-      CONSOLE_WEB_URL: https://care.jyotaish.in
-      APP_API_URL: https://care.jyotaish.in
-      APP_WEB_URL: https://care.jyotaish.in
-      SERVICE_API_URL: https://care.jyotaish.in
-      FILES_URL: https://care.jyotaish.in
-      ENDPOINT_URL_TEMPLATE: https://care.jyotaish.in/e/{hook_id}
+      CONSOLE_API_URL: http://care.jyotaish.in
+      CONSOLE_WEB_URL: http://care.jyotaish.in
+      APP_API_URL: http://care.jyotaish.in
+      APP_WEB_URL: http://care.jyotaish.in
+      SERVICE_API_URL: http://care.jyotaish.in
+      FILES_URL: http://care.jyotaish.in
+      ENDPOINT_URL_TEMPLATE: http://care.jyotaish.in/e/{hook_id}
       SECRET_KEY: ${SECRET_KEY:-changeme-replace-with-openssl-rand-hex-32}
       INNER_API_KEY_FOR_PLUGIN: QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1
       PLUGIN_DAEMON_URL: http://plugin_daemon:5002
@@ -340,7 +340,7 @@ services:
       - sh
       - -c
       - |
-        printf 'server {\n    listen 80;\n    server_name _;\n    client_max_body_size 100M;\n\n    resolver 127.0.0.11 valid=30s;\n\n    location /console/api {\n        proxy_pass http://api:5001;\n    }\n    location /api {\n        proxy_pass http://api:5001;\n    }\n    location /v1 {\n        proxy_pass http://api:5001;\n    }\n    location /files {\n        proxy_pass http://api:5001;\n    }\n    location /e/ {\n        proxy_pass http://plugin_daemon:5002;\n    }\n    location /mcp {\n        proxy_pass http://api:5001;\n    }\n    location /triggers {\n        proxy_pass http://api:5001;\n    }\n    location / {\n        proxy_pass http://web:3000;\n        proxy_http_version 1.1;\n    }\n}\n' > /etc/nginx/conf.d/default.conf
+        printf 'server {\n    listen 80;\n    server_name _;\n    client_max_body_size 100M;\n    proxy_read_timeout 300;\n    proxy_connect_timeout 60;\n\n    location /console/api {\n        proxy_pass http://api:5001;\n    }\n    location /api {\n        proxy_pass http://api:5001;\n    }\n    location /v1 {\n        proxy_pass http://api:5001;\n    }\n    location /files {\n        proxy_pass http://api:5001;\n    }\n    location /e/ {\n        proxy_pass http://plugin_daemon:5002;\n    }\n    location /mcp {\n        proxy_pass http://api:5001;\n    }\n    location /triggers {\n        proxy_pass http://api:5001;\n    }\n    location / {\n        proxy_pass http://web:3000;\n        proxy_http_version 1.1;\n    }\n}\n' > /etc/nginx/conf.d/default.conf
         nginx -g 'daemon off;'
     depends_on:
       - api
