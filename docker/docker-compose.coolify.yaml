@@ -352,6 +352,11 @@ services:
       - coolify
     labels:
       - "coolify.managed=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.dify.rule=Host(`care.jyotaish.in`)"
+      - "traefik.http.routers.dify.entrypoints=http"
+      - "traefik.http.services.dify.loadbalancer.server.port=80"
+      - "traefik.docker.network=coolify"
 
 networks:
   ssrf_proxy_network:
