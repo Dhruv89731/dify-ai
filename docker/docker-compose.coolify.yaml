@@ -254,10 +254,10 @@ services:
       REDIS_DB: "0"
       CELERY_BROKER_URL: redis://:difyai123456@redis:6379/1
       CELERY_BACKEND: redis
-      CONSOLE_API_URL: https://care.jyotaish.in
-      CONSOLE_WEB_URL: https://care.jyotaish.in
-      APP_API_URL: https://care.jyotaish.in
-      APP_WEB_URL: https://care.jyotaish.in
+      CONSOLE_API_URL: http://care.jyotaish.in
+      CONSOLE_WEB_URL: http://care.jyotaish.in
+      APP_API_URL: http://care.jyotaish.in
+      APP_WEB_URL: http://care.jyotaish.in
       SECRET_KEY: ${SECRET_KEY:-changeme-replace-with-openssl-rand-hex-32}
       INNER_API_KEY_FOR_PLUGIN: QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1
       PLUGIN_DAEMON_URL: http://plugin_daemon:5002
@@ -323,8 +323,8 @@ services:
     image: langgenius/dify-web:1.13.2
     restart: always
     environment:
-      CONSOLE_API_URL: https://care.jyotaish.in
-      APP_API_URL: https://care.jyotaish.in
+      CONSOLE_API_URL: http://care.jyotaish.in
+      APP_API_URL: http://care.jyotaish.in
       NEXT_TELEMETRY_DISABLED: "1"
       MARKETPLACE_API_URL: https://marketplace.dify.ai
       MARKETPLACE_URL: https://marketplace.dify.ai
