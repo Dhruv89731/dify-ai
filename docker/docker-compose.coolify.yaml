@@ -235,6 +235,7 @@ services:
     networks:
       - default
       - ssrf_proxy_network
+      - coolify
 
   # ── Worker ─────────────────────────────────────────────────────────────────
   worker:
@@ -287,7 +288,7 @@ services:
     networks:
       - default
       - ssrf_proxy_network
-
+      - coolify
   # ── Worker Beat ────────────────────────────────────────────────────────────
   worker_beat:
     image: langgenius/dify-api:1.13.2
@@ -317,6 +318,7 @@ services:
     networks:
       - default
       - ssrf_proxy_network
+      - coolify
 
   # ── Frontend Web ───────────────────────────────────────────────────────────
   web:
