@@ -351,11 +351,6 @@ services:
       - default
       - coolify
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dify.rule=Host(`care.jyotaish.in`)"
-      - "traefik.http.routers.dify.entrypoints=http"
-      - "traefik.http.services.dify.loadbalancer.server.port=80"
-      - "traefik.http.services.dify.loadbalancer.server.scheme=http"
       - "coolify.managed=true"
 
 networks:
