@@ -50,16 +50,19 @@ services:
       retries: 30
 
   # ── Redis ──────────────────────────────────────────────────────────────────
-  # CHANGED: Using bitnami/redis which respects REDIS_PASSWORD env var.
-  # The official redis:alpine image ignores --requirepass on Coolify because
-  # Coolify does not pass the command override to the container correctly.
+  # CHANGED: Uses entrypoint to write redis.conf inline (same pattern as nginx
+  # and ssrf_proxy). This bypasses Coolify ignoring the `command:` override.
   redis:
-    image: bitnami/redis:6.2
+    image: redis:6-alpine
     restart: always
-    environment:
-      REDIS_PASSWORD: difyai123456
+    entrypoint:
+      - sh
+      - -c
+      - |
+        printf 'requirepass difyai123456\nbind 0.0.0.0\nsave 900 1\nsave 300 10\nsave 60 10000\n' > /usr/local/etc/redis/redis.conf
+        redis-server /usr/local/etc/redis/redis.conf
     volumes:
-      - ./volumes/redis/data:/bitnami/redis/data
+      - ./volumes/redis/data:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a difyai123456 ping | grep -q PONG"]
       interval: 5s
