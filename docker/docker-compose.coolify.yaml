@@ -1,11 +1,15 @@
 # ===========================================================================
-# docker-compose.coolify.yaml  —  Dify on Coolify (v4 - Final)
+# docker-compose.coolify.yaml  —  Dify on Coolify (v5 - Redis Fix)
 #
-# Volume paths are relative to THIS FILE'S directory (docker/).
-# Docker Compose resolves relative paths from the compose file location,
-# not from --project-directory. So ./nginx/ = docker/nginx/ on disk.
+# KEY CHANGES FROM v4:
+#   - Redis switched to bitnami/redis:6.2 (uses REDIS_PASSWORD env var)
+#     The official redis:alpine image ignores --requirepass on Coolify.
+#   - SECRET_KEY hardcoded (no longer uses ${SECRET_KEY:-...} fallback)
+#   - Redis volume path updated to /bitnami/redis/data
 #
-# All connection-critical values are hardcoded literals.
+# BEFORE DEPLOYING:
+#   1. Delete the redis persistent storage volume in Coolify UI
+#   2. Then Redeploy
 # ===========================================================================
 
 services:
@@ -46,12 +50,16 @@ services:
       retries: 30
 
   # ── Redis ──────────────────────────────────────────────────────────────────
+  # CHANGED: Using bitnami/redis which respects REDIS_PASSWORD env var.
+  # The official redis:alpine image ignores --requirepass on Coolify because
+  # Coolify does not pass the command override to the container correctly.
   redis:
-    image: redis:6-alpine
+    image: bitnami/redis:6.2
     restart: always
-    command: redis-server --requirepass difyai123456
+    environment:
+      REDIS_PASSWORD: difyai123456
     volumes:
-      - ./volumes/redis/data:/data
+      - ./volumes/redis/data:/bitnami/redis/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a difyai123456 ping | grep -q PONG"]
       interval: 5s
@@ -78,8 +86,6 @@ services:
       DISABLE_TELEMETRY: "true"
 
   # ── Sandbox ────────────────────────────────────────────────────────────────
-  # Writes config.yaml inline — Coolify resolves ./volumes/sandbox/conf to an
-  # empty data dir, so the file mount approach fails same as nginx/ssrf_proxy.
   sandbox:
     image: langgenius/dify-sandbox:0.2.12
     restart: always
@@ -104,8 +110,6 @@ services:
       - ssrf_proxy_network
 
   # ── SSRF Proxy ─────────────────────────────────────────────────────────────
-  # Uses printf to write squid.conf inline — no file mounts (Coolify converts
-  # source file paths to empty directories, breaking cp-based entrypoints).
   ssrf_proxy:
     image: ubuntu/squid:latest
     restart: always
@@ -134,7 +138,7 @@ services:
       REDIS_PORT: "6379"
       REDIS_PASSWORD: difyai123456
       REDIS_DB: "0"
-      SECRET_KEY: ${SECRET_KEY:-changeme-replace-with-openssl-rand-hex-32}
+      SECRET_KEY: a9f3e2c1d4b5087612345678abcdef90a9f3e2c1d4b5087612345678abcdef90
       SERVER_PORT: "5002"
       SERVER_KEY: lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+Sjc3ZtU+qUEi
       DIFY_INNER_API_URL: http://api:5001
@@ -191,7 +195,7 @@ services:
       SERVICE_API_URL: http://care.jyotaish.in
       FILES_URL: http://care.jyotaish.in
       ENDPOINT_URL_TEMPLATE: http://care.jyotaish.in/e/{hook_id}
-      SECRET_KEY: ${SECRET_KEY:-changeme-replace-with-openssl-rand-hex-32}
+      SECRET_KEY: a9f3e2c1d4b5087612345678abcdef90a9f3e2c1d4b5087612345678abcdef90
       INNER_API_KEY_FOR_PLUGIN: QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1
       PLUGIN_DAEMON_URL: http://plugin_daemon:5002
       PLUGIN_DAEMON_KEY: lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+Sjc3ZtU+qUEi
@@ -222,7 +226,7 @@ services:
       MARKETPLACE_ENABLED: "true"
       MARKETPLACE_API_URL: https://marketplace.dify.ai
       FORCE_VERIFYING_SIGNATURE: "true"
-      INIT_PASSWORD: ${INIT_PASSWORD:-}
+      INIT_PASSWORD: ""
     depends_on:
       init_permissions:
         condition: service_completed_successfully
@@ -259,7 +263,7 @@ services:
       CONSOLE_WEB_URL: http://care.jyotaish.in
       APP_API_URL: http://care.jyotaish.in
       APP_WEB_URL: http://care.jyotaish.in
-      SECRET_KEY: ${SECRET_KEY:-changeme-replace-with-openssl-rand-hex-32}
+      SECRET_KEY: a9f3e2c1d4b5087612345678abcdef90a9f3e2c1d4b5087612345678abcdef90
       INNER_API_KEY_FOR_PLUGIN: QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1
       PLUGIN_DAEMON_URL: http://plugin_daemon:5002
       PLUGIN_DAEMON_KEY: lYkiYYT6owG+71oLerGzA7GXCgOT++6ovaezWAjpCjf+Sjc3ZtU+qUEi
@@ -289,6 +293,7 @@ services:
       - default
       - ssrf_proxy_network
       - coolify
+
   # ── Worker Beat ────────────────────────────────────────────────────────────
   worker_beat:
     image: langgenius/dify-api:1.13.2
@@ -307,7 +312,7 @@ services:
       REDIS_DB: "0"
       CELERY_BROKER_URL: redis://:difyai123456@redis:6379/1
       CELERY_BACKEND: redis
-      SECRET_KEY: ${SECRET_KEY:-changeme-replace-with-openssl-rand-hex-32}
+      SECRET_KEY: a9f3e2c1d4b5087612345678abcdef90a9f3e2c1d4b5087612345678abcdef90
       DEPLOY_ENV: PRODUCTION
       LOG_LEVEL: INFO
     depends_on:
@@ -332,9 +337,6 @@ services:
       MARKETPLACE_URL: https://marketplace.dify.ai
 
   # ── Nginx ──────────────────────────────────────────────────────────────────
-  # Uses printf to write config inline — no file/volume mounts needed.
-  # Coolify resolves bind mounts to /data/coolify/applications/<uuid>/ (not the
-  # git repo), so repo file mounts are impossible. printf avoids this entirely.
   nginx:
     image: nginx:alpine
     restart: always
