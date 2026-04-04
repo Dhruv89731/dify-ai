@@ -60,9 +60,7 @@ services:
       - -c
       - |
         mkdir -p /tmp/redisconf
-        printf 'requirepass difyai123456\nbind 0.0.0.0\ndir /data\nsave 900 1\nsave 300 10\nuser default on >difyai123456 ~* &* +@all\n' > /tmp/redisconf/redis.conf
-        # Delete stale dump.rdb which stores old ACL (no-password) and overrides requirepass
-        rm -f /data/dump.rdb
+        printf 'requirepass difyai123456\nbind 0.0.0.0\ndir /data\ndbfilename fresh.rdb\nsave 900 1\nsave 300 10\nuser default on >difyai123456 ~* &* +@all\n' > /tmp/redisconf/redis.conf
         redis-server /tmp/redisconf/redis.conf
     volumes:
       - ./volumes/redis/data:/data
