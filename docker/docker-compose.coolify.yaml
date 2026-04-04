@@ -59,13 +59,11 @@ services:
       - sh
       - -c
       - |
-        mkdir -p /tmp/redisconf
-        printf 'requirepass difyai123456\nbind 0.0.0.0\ndir /data\ndbfilename fresh.rdb\nsave 900 1\nsave 300 10\nuser default on >difyai123456 ~* &* +@all\n' > /tmp/redisconf/redis.conf
-        redis-server /tmp/redisconf/redis.conf
+        redis-server --requirepass difyai123456 --bind 0.0.0.0 --dir /data --dbfilename fresh.rdb --save "" --loglevel notice
     volumes:
       - ./volumes/redis/data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a difyai123456 -p 6379 ping | grep -q PONG"]
+      test: ["CMD-SHELL", "redis-cli -a difyai123456 ping | grep -q PONG"]
       interval: 10s
       timeout: 5s
       retries: 10
