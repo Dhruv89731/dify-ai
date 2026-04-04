@@ -50,8 +50,8 @@ services:
       retries: 30
 
   # ── Redis ──────────────────────────────────────────────────────────────────
-  # CHANGED: Uses entrypoint to write redis.conf inline (same pattern as nginx
-  # and ssrf_proxy). This bypasses Coolify ignoring the `command:` override.
+  # Uses entrypoint + /tmp to write redis.conf inline. mkdir -p ensures the
+  # directory exists in alpine. start_period gives Redis time to load old RDB.
   redis:
     image: redis:6-alpine
     restart: always
@@ -59,15 +59,17 @@ services:
       - sh
       - -c
       - |
-        printf 'requirepass difyai123456\nbind 0.0.0.0\nsave 900 1\nsave 300 10\nsave 60 10000\n' > /usr/local/etc/redis/redis.conf
-        redis-server /usr/local/etc/redis/redis.conf
+        mkdir -p /tmp/redisconf
+        printf 'requirepass difyai123456\nbind 0.0.0.0\ndir /data\nsave 900 1\nsave 300 10\n' > /tmp/redisconf/redis.conf
+        redis-server /tmp/redisconf/redis.conf
     volumes:
       - ./volumes/redis/data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a difyai123456 ping | grep -q PONG"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+      test: ["CMD-SHELL", "redis-cli -a difyai123456 -p 6379 ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   # ── Weaviate ───────────────────────────────────────────────────────────────
   weaviate:
